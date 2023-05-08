@@ -14,9 +14,13 @@ import settings
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 # Hyper Parameters
-num_epochs = 300
-batch_size = 20
+num_epochs = 30
+batch_size = 240
 learning_rate = 0.001
+
+num_workers = 8
+pin_memory = True
+
 
 device = torch_util.select_device()
 
@@ -34,7 +38,12 @@ def main(args):
 
     max_acc = 0
     # Train the Model
-    train_dataloader = datasets.get_train_data_loader()
+    train_dataloader = datasets.get_train_data_loader(
+        batch_size=batch_size,
+        # num_workers=num_workers,
+        # pin_memory=pin_memory
+    )
+    print(train_dataloader)
     for epoch in range(num_epochs):
         for i, (images, labels) in enumerate(train_dataloader):
             images = Variable(images).cuda()
@@ -44,9 +53,13 @@ def main(args):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if (i + 1) % 2 == 0:
+            if (i + 1) % 20 == 0:
                 print("epoch: %03g \t step: %03g \t loss: %.5f \t\r" % (epoch, i + 1, loss.item()))
-                torch.save(cnn.state_dict(), "./weights/cnn_%03g.pt" % epoch)
+                if not os.path.isdir("./weights"):
+                    os.mkdir("./weights")
+                if (i + 1) % 10 == 0:
+                    torch.save(cnn.state_dict(), "./weights/cnn_%03g.pt" % epoch)
+
         print("epoch: %03g \t step: %03g \t loss: %.5f \t" % (epoch, i, loss.item()))
         torch.save(cnn.state_dict(), "./weights/cnn_%03g.pt" % epoch)
         acc = test.test_data("./weights/cnn_%03g.pt" % epoch)
@@ -62,6 +75,8 @@ def main(args):
 
 
 if __name__ == '__main__':
+    # print(f"{torch.cuda.is_available()=}")
+
     parser = argparse.ArgumentParser(description="load path")
     parser.add_argument('--model-path', type=str, default="./weights/cnn_0.pt")
     parser.add_argument('--resume', action='store_true')

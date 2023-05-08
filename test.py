@@ -12,15 +12,15 @@ import os
 from models import *
 from tqdm import *
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
-# device = torch.device("cpu")
-device = torch_util.select_device()
+device_ = torch.device('cpu')
+# device = torch_util.select_device()
 
 def main(model_path):
     cnn = CNN()
     cnn.eval()
-    cnn.load_state_dict(torch.load(model_path, map_location=device))
+    cnn.load_state_dict(torch.load(model_path, map_location=device_))
     print("load cnn net.")
 
     test_dataloader = datasets.get_test_data_loader()
@@ -53,7 +53,7 @@ def main(model_path):
 def test_data(model_path):
     cnn = CNN()
     cnn.eval()
-    cnn.load_state_dict(torch.load(model_path, map_location=device))
+    cnn.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     test_dataloader = datasets.get_test_data_loader()
 
     correct = 0
@@ -62,7 +62,7 @@ def test_data(model_path):
     for i, (images, labels) in enumerate(test_dataloader):
 
         image = images
-        vimage = Variable(image).cuda()
+        vimage = Variable(image)
         predict_label = cnn(vimage)
 
         c0 = settings.ALL_CHAR_SET[np.argmax(predict_label[0, 0:settings.ALL_CHAR_SET_LEN].data.numpy())]
@@ -72,6 +72,7 @@ def test_data(model_path):
         predict_label = '%s%s%s%s' % (c0, c1, c2, c3)
         true_label = one_hot_encoding.decode(labels.numpy()[0])
         total += labels.size(0)
+        print(predict_label, true_label)
         if(predict_label == true_label):
             correct += 1
         # if(total%200==0):
