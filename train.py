@@ -15,8 +15,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 # Hyper Parameters
 num_epochs = 30
-batch_size = 240
-learning_rate = 0.001
+batch_size = 128
+learning_rate = 0.002
 
 num_workers = 8
 pin_memory = True
@@ -40,9 +40,8 @@ def main(args):
     # Train the Model
     train_dataloader = datasets.get_train_data_loader(
         batch_size=batch_size,
-        # num_workers=num_workers,
-        # pin_memory=pin_memory
     )
+
     print(train_dataloader)
     for epoch in range(num_epochs):
         for i, (images, labels) in enumerate(train_dataloader):
