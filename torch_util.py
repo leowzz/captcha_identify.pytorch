@@ -1,5 +1,5 @@
 import torch
-
+import matplotlib.pyplot as plt
 
 def init_seeds(seed=0):
     torch.manual_seed(seed)
@@ -26,32 +26,22 @@ def select_device(force_cpu=False):
     print('')  # skip a line
     return device
 
+def plot_result():
+    fig = plt.figure(15)
+    with open("results.txt", "r") as f:
+        import csv
+        f_csv = csv.reader(f)
+        epoch , acc = [], []
+        for row in f_csv:
+            print(row)
+            epoch.append(int(row[0]))
+            acc.append(float(row[1]))
+        plt.plot(epoch, acc)
+    plt.title("result-epoch&acc") 
+    plt.xlabel("epoch") 
+    plt.ylabel("accuracy") 
+    plt.show()
+    fig.savefig("results.png", dpi=300)
 
-def fuse_conv_and_bn(conv, bn):
-    # https://tehnokv.com/posts/fusing-batchnorm-and-conv/
-    with torch.no_grad():
-        # init
-        fusedconv = torch.nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            bias=True
-        )
-
-        # prepare filters
-        w_conv = conv.weight.clone().view(conv.out_channels, -1)
-        w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-        fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.size()))
-
-        # prepare spatial bias
-        if conv.bias is not None:
-            b_conv = conv.bias
-        else:
-            b_conv = torch.zeros(conv.weight.size(0))
-        b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-        fusedconv.bias.copy_(b_conv + b_bn)
-
-        return fusedconv
-
+if __name__=="__main__":
+    plot_result()

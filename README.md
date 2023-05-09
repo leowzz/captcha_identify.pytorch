@@ -51,9 +51,7 @@
 
     Python3.6+ 、ImageCaptcha库(pip install captcha)、 Pytorch(参考官网http://pytorch.org)
 
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-```
+
 - __步骤二：生成验证码__
     ```bash
     python captchaGenerator.py
