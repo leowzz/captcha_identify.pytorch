@@ -16,7 +16,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 # Hyper Parameters
 num_epochs = 30
 batch_size = 128
-learning_rate = 0.002
+learning_rate = 0.0001
 
 num_workers = 8
 pin_memory = True
@@ -41,8 +41,8 @@ def main(args):
     train_dataloader = datasets.get_train_data_loader(
         batch_size=batch_size,
     )
-
-    print(train_dataloader)
+    train_data_len = len(train_dataloader)
+    print(f"{train_data_len=}")
     for epoch in range(num_epochs):
         for i, (images, labels) in enumerate(train_dataloader):
             images = Variable(images).cuda()
@@ -56,7 +56,7 @@ def main(args):
                 print("epoch: %03g \t step: %03g \t loss: %.5f \t\r" % (epoch, i + 1, loss.item()))
                 if not os.path.isdir("./weights"):
                     os.mkdir("./weights")
-                if (i + 1) % 10 == 0:
+                if (i + 1) % (train_data_len / 200) == 0:
                     torch.save(cnn.state_dict(), "./weights/cnn_%03g.pt" % epoch)
 
         print("epoch: %03g \t step: %03g \t loss: %.5f \t" % (epoch, i, loss.item()))
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # print(f"{torch.cuda.is_available()=}")
 
     parser = argparse.ArgumentParser(description="load path")
-    parser.add_argument('--model-path', type=str, default="./weights/cnn_0.pt")
+    parser.add_argument('--model-path', type=str, default="./weights/cnn_000.pt")
     parser.add_argument('--resume', action='store_true')
 
     args = parser.parse_args()
